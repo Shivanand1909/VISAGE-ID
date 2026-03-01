@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Attendance System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "BBH sans bartle", sans-serif;
+            background: linear-gradient(145deg,#3d8be4,#df38df,#083c90);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: transparent;
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: #04124d;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .video-placeholder {
+            color: #666;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-start {
+            background: #079364;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: #074b35;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-stop {
+            background: #f07777;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #560a0a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-reload {
+            background: #0e3778;
+            color: white;
+        }
+
+        .btn-reload:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-reset {
+            background: #efc781;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #8e520e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #5a73e3 0%, #0c08e3 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .attendance-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .attendance-item {
+            background: #f3f4f6;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .attendance-name {
+            font-weight: bold;
+            color: #1f2937;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .attendance-time {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .upload-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: transparent;
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            color: #eff1f9;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e7ecf5;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-upload {
+            width: 100%;
+            background: #8b5cf6;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-upload:hover {
+            background: #7c3aed;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .known-faces-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .face-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f3f4f6;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+
+        .face-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            min-width: auto;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6b7280;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VISAGE ID</h1>
+
+        <div id="alertContainer"></div>
+
+        <div class="main-grid">
+            <div class="card">
+                <h2>🎥 Live Camera Feed</h2>
+                <div class="video-container">
+                    <img id="videoFeed" src="" alt="Click Start to begin" style="display:none;">
+                    <div id="videoPlaceholder" class="video-placeholder">
+                        <h3>📷 Camera Ready</h3>
+                        <p>Click "START RECOGNITION" to begin</p>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn-start" onclick="startRecognition()">▶️ Start</button>
+                    <button class="btn-stop" onclick="stopRecognition()">⏹️ Stop</button>
+                    <button class="btn-reload" onclick="reloadFaces()">🔄 Reload</button>
+                    <button class="btn-reset" onclick="resetAttendance()">🗑️ Reset CSV</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h2>📊 Today's Statistics</h2>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-number" id="totalAttendance">0</div>
+                            <div class="stat-label">Present Today</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="totalFaces">0</div>
+                            <div class="stat-label">Registered Faces</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h2>➕ Add New Face</h2>
+                    <div class="upload-section">
+                        <form id="uploadForm" onsubmit="uploadFace(event)">
+                            <div class="form-group">
+                                <label for="personName">Person Name</label>
+                                <input type="text" id="personName" placeholder="Enter name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="faceImage">Face Image</label>
+                                <input type="file" id="faceImage" accept="image/*" required>
+                            </div>
+                            <button type="submit" class="btn-upload">📤 Upload Face</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <h2>✅ Today's Attendance</h2>
+                <div class="attendance-list" id="attendanceList">
+                    <div class="no-data">No attendance recorded yet</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>👥 Registered People</h2>
+                <div class="known-faces-list" id="knownFacesList">
+                    <div class="no-data">No faces registered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval = null;
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        async function startRecognition() {
+            try {
+                const response = await fetch('/start_recognition', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showAlert('✅ ' + data.message, 'success');
+                    
+                    // Show video feed
+                    document.getElementById('videoPlaceholder').style.display = 'none';
+                    document.getElementById('videoFeed').style.display = 'block';
+                    document.getElementById('videoFeed').src = '/video_feed?' + new Date().getTime();
+                    
+                    // Start auto-refresh
+                    startAutoRefresh();
+                } else {
+                    showAlert('❌ ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function stopRecognition() {
+            try {
+                const response = await fetch('/stop_recognition', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showAlert('⏹️ ' + data.message, 'info');
+                    
+                    // Hide video feed
+                    document.getElementById('videoFeed').style.display = 'none';
+                    document.getElementById('videoPlaceholder').style.display = 'block';
+                    document.getElementById('videoFeed').src = '';
+                    
+                    // Stop auto-refresh
+                    stopAutoRefresh();
+                    
+                    // Final refresh
+                    loadAttendance();
+                } else {
+                    showAlert('❌ ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function reloadFaces() {
+            try {
+                const response = await fetch('/reload_faces', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showAlert('✅ ' + data.message, 'success');
+                    loadKnownFaces();
+                } else {
+                    showAlert('❌ ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function resetAttendance() {
+            if (!confirm('⚠️ This will backup the old file and create a fresh attendance.csv. Continue?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/reset_attendance', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showAlert('✅ ' + data.message, 'success');
+                    loadAttendance();
+                } else {
+                    showAlert('❌ ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function uploadFace(event) {
+            event.preventDefault();
+            
+            const personName = document.getElementById('personName').value.trim();
+            const fileInput = document.getElementById('faceImage');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('❌ Please select an image', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('person_name', personName);
+            
+            try {
+                const response = await fetch('/upload_face', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showAlert('✅ ' + data.message, 'success');
+                    document.getElementById('uploadForm').reset();
+                    loadKnownFaces();
+                } else {
+                    showAlert('❌ ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deletePerson(personName) {
+            if (!confirm(`Are you sure you want to delete ${personName}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/delete_person', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ person_name: personName })
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showAlert('✅ ' + data.message, 'success');
+                    loadKnownFaces();
+                } else {
+                    showAlert('❌ ' + data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadAttendance() {
+            try {
+                const response = await fetch('/get_attendance');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const attendanceList = document.getElementById('attendanceList');
+                    
+                    if (data.attendance.length === 0) {
+                        attendanceList.innerHTML = '<div class="no-data">No attendance recorded yet</div>';
+                    } else {
+                        attendanceList.innerHTML = '';
+                        data.attendance.forEach(record => {
+                            const item = document.createElement('div');
+                            item.className = 'attendance-item';
+                            item.innerHTML = `
+                                <div class="attendance-name">✅ ${record.Name}</div>
+                                <div class="attendance-time">🕐 ${record.Time} | 📅 ${record.Date}</div>
+                            `;
+                            attendanceList.appendChild(item);
+                        });
+                    }
+                    
+                    document.getElementById('totalAttendance').textContent = data.total_today;
+                }
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+            }
+        }
+
+        async function loadKnownFaces() {
+            try {
+                const response = await fetch('/get_known_faces');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const facesList = document.getElementById('knownFacesList');
+                    
+                    if (data.faces.length === 0) {
+                        facesList.innerHTML = '<div class="no-data">No faces registered</div>';
+                    } else {
+                        facesList.innerHTML = '';
+                        data.faces.forEach(name => {
+                            const item = document.createElement('div');
+                            item.className = 'face-item';
+                            item.innerHTML = `
+                                <span class="face-name">👤 ${name}</span>
+                                <button class="btn-delete" onclick="deletePerson('${name}')">🗑️ Delete</button>
+                            `;
+                            facesList.appendChild(item);
+                        });
+                    }
+                    
+                    document.getElementById('totalFaces').textContent = data.total;
+                }
+            } catch (error) {
+                console.error('Error loading known faces:', error);
+            }
+        }
+
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            
+            refreshInterval = setInterval(() => {
+                loadAttendance();
+            }, 2000);
+            
+            console.log('✅ Auto-refresh started');
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+                console.log('⏹️ Auto-refresh stopped');
+            }
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            console.log('🚀 Page loaded');
+            loadAttendance();
+            loadKnownFaces();
+            
+            // Refresh stats every 3 seconds
+            setInterval(() => {
+                if (!refreshInterval) {
+                    loadAttendance();
+                    loadKnownFaces();
+                }
+            }, 3000);
+        };
+
+        // Cleanup on page unload
+        window.onbeforeunload = function() {
+            stopAutoRefresh();
+        };
+    </script>
+</body>
+</html>

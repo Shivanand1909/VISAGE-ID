@@ -1,0 +1,13 @@
+face_attendance_system/
+├── app.py                    # ✅ Main Flask application
+├── requirements.txt          # ✅ Python dependencies  
+├── templates/
+│   └── index.html           # ✅ Web frontend
+├── images/                  # 📁 Create subfolders for each person
+│   ├── John/
+│   │   └── john.jpg
+│   ├── Mary/
+│   │   └── mary.jpg
+│   └── Alice/
+│       └── alice.jpg
+└── attendance.csv           # 📋 Auto-generated attendance log
